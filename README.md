@@ -10,9 +10,9 @@ Requirements: java 8
 ```
 java ProcessMonitor <process_name> <log_dir> <error_log_dir>
 ```
-<process_name>:Name of the process to monitor. (without extension) <b>Mandatory</b>\
+<process_name>:Name of the process to monitor. (without extension) <b>Mandatory</b> \
 <log_dir>:The directory that save process log. Default : Current Working Directory \
-<error_log_dir>:The directory that save error log. Default : Current Working Directory\
+<error_log_dir>:The directory that save error log. Default : Current Working Directory
 
 
 <b> NOTE: It Frequently check the task manager for the state. It runs on background it consider as running even though you haven't seen them in the screen </b>
