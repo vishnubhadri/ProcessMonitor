@@ -17,4 +17,4 @@ java ProcessMonitor <process_name> <log_dir> <error_log_dir>
 
 <b> NOTE: It Frequently check the task manager for the state. It runs on background it consider as running even though you haven't seen them in the screen </b>
 
-GET FROM '''mvn deploy -Dregistry=https://maven.pkg.github.com/vishnubhadri -Dtoken=GH_TOKEN'''
+GET FROM ```mvn deploy -Dregistry=https://maven.pkg.github.com/vishnubhadri -Dtoken=GH_TOKEN```
