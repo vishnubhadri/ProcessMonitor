@@ -8,12 +8,14 @@ Requirements: java 8
 
 ## Arguments
 ```
-java ProcessMonitor <process_name> <log_dir> <error_log_dir>
+java ProcessMonitor <process_name> <log_dir> <error_log_dir> <time_format>
 ```
 <process_name>:Name of the process to monitor. (without extension) <b>Mandatory</b> \
 <log_dir>:The directory that save process log. Default : Current Working Directory \
-<error_log_dir>:The directory that save error log. Default : Current Working Directory
+<error_log_dir>:The directory that save error log. Default : Current Working Directory \
+<time_format>: Return the ran time of the application from previous state. : default: dd hh:mm:ss \
 
 
 <b> NOTE: It Frequently check the task manager for the state. It runs on background it consider as running even though you haven't seen them in the screen </b>
+<b> NOTE: Time format currently support dd,hh,mm and ss. </b>
 

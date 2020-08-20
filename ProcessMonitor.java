@@ -3,8 +3,8 @@ import java.io.File;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import java.util.Stack;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -18,15 +18,21 @@ class ProcessMonitor extends TimerTask
 	static String applicationName;
 	static boolean prevStatus;
 	static boolean error=false;
-	static Stack<Long> stack=new Stack<>();
+	static String timeformat;
+	static long prevStatusTime=0;
 	@Override
 	public void run() {
 		boolean curStatus=checkApplicationStatus(applicationName);
 		if(prevStatus!=curStatus)
 		{
-			fileWriter("STATUS CHANGED AT "+curTime()+": Monitoring "+applicationName+" Status:"+boolToStatus(curStatus),logPath);
+			long curTime=curtimeToSec();
+			long ranseconds=curTime-prevStatusTime;
+			String convertTOHours=convertTOHours(ranseconds);
+			System.out.println(curTime+"-"+prevStatusTime);
+			fileWriter("STATUS CHANGED AT "+curTime()+": Monitoring "+applicationName+" Status:"+boolToStatus(curStatus)+" Ran For:"+convertTOHours,logPath);
 			fileWriterCSV(boolToStatus(curStatus));
 			prevStatus=curStatus;
+			prevStatusTime=curtimeToSec();
 		}else
 		{
 			fileWriter("Status Remain Same "+curTime()+": Monitoring "+applicationName+" Status:"+boolToStatus(curStatus),logPath);
@@ -54,10 +60,13 @@ class ProcessMonitor extends TimerTask
 	{
 		String heading="";
 		File tempFile = new File(logPath+"\\"+curDate()+".csv");
+		long curTime=curtimeToSec();
+		long ranseconds=curTime-prevStatusTime;
+		String convertTOHours=convertTOHours(ranseconds);
 		if(!tempFile.exists()){
-			heading="processname,time,status\n";
+			heading="processname,time,status,rantime\n";
 		}
-		String content=""+applicationName+","+curTime()+","+status+"\n";
+		String content=""+applicationName+","+curTime()+","+status+","+convertTOHours+"\n";
 		try(FileOutputStream fs=new FileOutputStream(logPath+"\\"+curDate()+".csv",true);)
 		{
 			fs.write(((heading!=""?heading+content:content)).getBytes());
@@ -95,11 +104,21 @@ class ProcessMonitor extends TimerTask
 			}
 			else
 			{
-				logPath=args[1];
+				ErrorlogPath=args[2];
+			}	
+			if(args.length<4||args[3]==null||args[3].equals(""))
+			{
+				timeformat="dd hh:mm:ss";
+				System.out.println("USING "+timeformat+" FOR TIMEFORMAT");
+			}
+			else
+			{
+				timeformat=args[3];
 			}	
 			ProcessMonitor p=new ProcessMonitor();
 			Timer t=new Timer();
 			prevStatus=checkApplicationStatus(applicationName);
+			prevStatusTime=curtimeToSec();
 			try
 			{
 				fileWriter("Application Started at "+curTime()+": Monitoring "+applicationName+" Status:"+boolToStatus(prevStatus),logPath);
@@ -115,11 +134,6 @@ class ProcessMonitor extends TimerTask
 			{
 				e.printStackTrace();
 				return ;
-			}
-			
-			if(prevStatus)
-			{
-				stack.push(curtimeToSec());
 			}
 			t.scheduleAtFixedRate(p, 0,5*1000);
 		}catch(Exception e)
@@ -143,7 +157,7 @@ class ProcessMonitor extends TimerTask
 			String line;
 			String pidInfo ="";
 			
-			Process p =Runtime.getRuntime().exec(System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+			Process p =Runtime.getRuntime().exec(System.getenv("windir") +"\\system32\\"+"tasklist.exe /FI \"IMAGENAME eq "+processname+".exe\"");
 			
 			BufferedReader input =  new BufferedReader(new InputStreamReader(p.getInputStream()));
 			
@@ -164,9 +178,26 @@ class ProcessMonitor extends TimerTask
 	private static void displayHelp(){
 		String content="";
 		content="\tProcess Montior help menu\n\n";
-		content+="\t\targs <ProcessName> <logpath> <errorlogpath>\n\n";
+		content+="\t\targs <ProcessName> <logpath> <errorlogpath> <timeformat>\n\n";
 		content+="\t\tExample:\n";
-		content+="\t\tjava ProcessMonitor mstsc D:\\Vish\\MSTSC\\ D:\\Vish\\MSTSC\\error";
+		content+="\t\tjava ProcessMonitor mstsc D:\\Vish\\MSTSC\\ D:\\Vish\\MSTSC\\error d-hh:mm:ss";
 		System.out.println(content);
 	}
+	private static String convertTOHours(long ranseconds)
+	{ 
+		long day = ranseconds / (long)(24 * 3600); 
+	
+		ranseconds = ranseconds % (long)(24 * 3600); 
+		long hour = ranseconds / (long)3600; 
+	
+		ranseconds %= (long)3600; 
+		long minutes = ranseconds / (long)60 ; 
+	
+		ranseconds %= (long)60; 
+		long seconds = ranseconds;
+		
+		String returnTmp=timeformat.replaceAll("dd",String.valueOf(day)).replaceAll("hh",String.valueOf(hour)).replaceAll("mm",String.valueOf(minutes)).replaceAll("ss",String.valueOf(seconds));
+		
+		return returnTmp; 
+	} 
 }
