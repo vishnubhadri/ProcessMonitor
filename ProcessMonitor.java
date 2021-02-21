@@ -34,6 +34,11 @@ class ProcessMonitor extends TimerTask {
     static boolean fileLocked = false;
     static FileOutputStream fs = null;
 
+    static File f_log_path;
+    static File f_error_log_path;
+    
+    static String csv_file_path=logPath + "\\" + curDate() + ".csv";
+    
     @Override
     public void run() {
         boolean curStatus = checkApplicationStatus(applicationName);
@@ -67,7 +72,7 @@ class ProcessMonitor extends TimerTask {
 
     private static void fileWriterCSV(String status) {
         String heading = "";
-        File tempFile = new File(logPath + "\\" + curDate() + ".csv");
+        File tempFile = new File(csv_file_path);
         long curTime = curtimeToSec();
         long ranseconds = curTime - prevStatusTime;
         String convertTOHours = convertTOHours(ranseconds);
@@ -125,11 +130,24 @@ class ProcessMonitor extends TimerTask {
 			{
 				timeformat=args[3];
 			}	*/
-            String[] test = {"--process-name=cmd", "--lockcsvfile"};
-            if (argumentParser(test)) {
+            //String[] test = {"--process-name=cmd", "--lockcsvfile"};
+            if (argumentParser(args)) {
                 System.exit(0);
             }
+            System.out.println(getStatus());
+            if(f_log_path!=null&&!f_log_path.exists())
+            {
+                System.out.println("Creation path:"+f_log_path.toString());
+                f_log_path.mkdirs();
+            }
+            if(f_error_log_path!=null&&!f_error_log_path.mkdirs())
+            {
+                System.out.println("Creation path:"+f_error_log_path.toString());
+                f_error_log_path.mkdirs();
+            }
+            
             fs = new FileOutputStream(logPath + "\\" + curDate() + ".csv", true);
+            
             ProcessMonitor p = new ProcessMonitor();
             Timer t = new Timer();
             prevStatus = checkApplicationStatus(applicationName);
@@ -258,10 +276,12 @@ class ProcessMonitor extends TimerTask {
                 }
                 case (ARGUMENT_LOG): {
                     logPath = val;
+                    f_log_path=new File(logPath);
                     break;
                 }
                 case (ARGUMENT_LOG_ERROR): {
                     ErrorlogPath = val;
+                    f_error_log_path=new File(ErrorlogPath);
                     break;
                 }
                 case (ARGUMENT_TIME_FORMAT): {
@@ -275,5 +295,17 @@ class ProcessMonitor extends TimerTask {
             }
         }
         return false;
+    }
+    private static String getStatus() {
+        StringBuilder sb=new StringBuilder();
+        sb.append("******************************STATUS******************************");
+        sb.append("\nProcess name : "+applicationName);
+        sb.append("\nLog path : "+logPath);
+        sb.append("\nfile name: "+curDate() + ".txt");
+        sb.append("\nError log path: "+ErrorlogPath);
+        sb.append("\ntimeformat: "+timeformat);
+        sb.append("\nfile locked: "+fileLocked);
+        sb.append("\n************************************************************");
+        return sb.toString();
     }
 }
